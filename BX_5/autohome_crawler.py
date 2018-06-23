@@ -155,7 +155,7 @@ def verify_if_need(browser):
 if __name__ == '__main__':
     # carType_file = pd.read_excel(r'C:\Users\Ruofei Shen\Desktop\Lowrence_BX5\BX5_cars_id_name.xlsx')
     carType_file = pd.read_excel(r'C:\Users\Ruofei Shen\Desktop\Lowrence_BX5\BX7_cars_id_name.xlsx')
-    carType_id_list = list(carType_file['car_id'])[-1:]
+    carType_id_list = list(carType_file['car_id'])
     crawler = CommentsCrawler()
     for carType_id in carType_id_list:
         crawler.open_first_page(carType_id)

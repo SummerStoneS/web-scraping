@@ -58,9 +58,9 @@ def most_freq_words(data, column='最不满意')->Tuple[list, list]:
     word_list = get_word_list(data, 'cut_text')
     # 统计词频
     fdisk = nltk.FreqDist(word_list)
-    common_words = fdisk.most_common(400)
+    common_words = fdisk.most_common(most_frequent_N_words*2)                       # 防止下一行删除的数量过多，不足200个
     common_words = [(word, freq) for word, freq in common_words if len(word) > 1]
-    words, freqs = zip(*common_words[:200])
+    words, freqs = zip(*common_words[:most_frequent_N_words])
     return words, freqs
 
 
@@ -132,37 +132,46 @@ def getColumnsCutforWordCloud(one_car_data, runtime=1):
     return one_car_data
 
 
+def get_all_cars_high_frequency_words(all_carType_data, wordfreqs_savepath):
+    create_folder(wordfreqs_savepath)
+    for carType in all_carType_data["车型"].unique():
+        print(carType)
+        one_car_data = all_carType_data[all_carType_data["车型"] == carType]
+        words_with_freqs = multiColumnsHighFrequencyWords(one_car_data)
+        words_with_freqs.to_excel(wordfreqs_savepath + '/' + carType + "高频词统计.xlsx")
+
+
+def plot_all_cars_wordcloud(all_carType_data, wordcloud_savepath, runtime=1):
+    create_folder(wordcloud_savepath)
+    for carType in all_carType_data["车型"].unique():
+        print(carType)
+        filter_onecar = all_carType_data[all_carType_data["车型"] == carType]
+        one_car = getColumnsCutforWordCloud(filter_onecar, runtime=runtime)
+        plot_one_car_wordcloud_with_multicolumns(one_car)
+
+
 if __name__ == '__main__':
 
     need_wordcloud_columns = ["评论_最不满意的一点", "评论_最满意的一点", "长评价"]
     wordcloud_background_images = ["unsatisfied_back_image.jpg", "satisfied_back_image.jpg", "fullcomment_back_image.jpg"]
-    # wordcloud_background_images = ["unsatisfied_back_image.jpg", "red.jpg",
-    #                                "fullcomment_back_image.jpg"]
     customized_stopwords = ["觉得", "好像", "满意", "应该", "感觉", "没有", "nan", "不能", "起来", "有点", "完全",
                             "不到", "不会", "知道", "希望", "可能", "没什么", "东西", "个人", "方面", "看看", "不用",
                             "属于", "考虑", "进去", "舍得", "不错", "看起来", "毫无", "看中", "相比", "取车", "收入",
                             "处于", "重新", "发现", "能够", "想要", "情节", "丰富", "级别", "行驶", "水平", "相比",
                             "接车", "不免有些", "不免", "有些", "回来", "并称", "需要", "有待", "容易"]
+    data_folder = "newBX"
 
-    wordfreqs_savepath = "BX5/词频统计"
-    wordcloud_savepath="BX5/词云图"
-    create_folder(wordfreqs_savepath)
-    create_folder(wordcloud_savepath)
-
-    all_carType_data = pd.read_excel("BX5/cleanedCrawlerData.xlsx")
-    # for carType in all_carType_data["车型"].unique():
-    #     print(carType)
-    #     one_car_data = all_carType_data[all_carType_data["车型"] == carType]
-    #     words_with_freqs = multiColumnsHighFrequencyWords(one_car_data)
-    #     words_with_freqs.to_excel(wordfreqs_savepath + '/' + carType + "高频词统计.xlsx")
+    all_carType_data = pd.read_excel("newBX/cleanedCrawlerData.xlsx")
+    # 获得所有车型 需要统计高频词的列 的前200个高频词
+    wordfreqs_savepath = data_folder + "/词频统计"
+    most_frequent_N_words = 200
+    get_all_cars_high_frequency_words(all_carType_data, wordfreqs_savepath)
 
 
     # # 对着满意，不满意，长评价画词云图，用分词后的画
-    for carType in all_carType_data["车型"].unique():
-        print(carType)
-        filter_onecar = all_carType_data[all_carType_data["车型"] == carType]
-        one_car = getColumnsCutforWordCloud(filter_onecar, runtime=2)
-        plot_one_car_wordcloud_with_multicolumns(one_car)
+    wordcloud_savepath = data_folder + "/词云图"
+    plot_all_cars_wordcloud(all_carType_data, wordcloud_savepath, runtime=1)
+
 
 
 
